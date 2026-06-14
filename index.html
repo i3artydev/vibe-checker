@@ -505,11 +505,15 @@ function App(){
         )
       ),
       React.createElement('div',{className:'hdr-right'},
-        React.createElement('button',{className:'icon-btn',onClick:()=>setTheme(t=>t==='light'?'dark':'light')},
-          React.createElement('i',{className:theme==='light'?'ti ti-moon':'ti ti-sun'}),
-          theme==='light'?'Dark':'Light'
-        )
-      )
+              React.createElement('a',{href:'https://buymeacoffee.com/appstractcode',target:'_blank',className:'icon-btn',style:{textDecoration:'none'}},
+                React.createElement('i',{className:'ti ti-coffee'}),
+                'Buy me a coffee'
+              ),
+              React.createElement('button',{className:'icon-btn',onClick:()=>setTheme(t=>t==='light'?'dark':'light')},
+                React.createElement('i',{className:theme==='light'?'ti ti-moon':'ti ti-sun'}),
+                theme==='light'?'Dark':'Light'
+              )
+            )
     ),
     React.createElement('div',{className:'hero'},
       React.createElement('h1',null,'Full-stack web app audit'),
