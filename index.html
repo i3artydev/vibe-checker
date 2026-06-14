@@ -290,6 +290,19 @@ async function checkSEO(domain){
   if(!hasCookieBanner)res.push({id:'priv_cookie',title:'Cookie consent banner not detected',severity:'medium',category:'Privacy',what:'No cookie consent mechanism detected on the page.',why:'GDPR requires explicit consent before setting non-essential cookies (analytics, ads). Fines can reach €20M or 4% of global revenue.',fix:'Add a consent banner using a free tool like CookieYes or Osano. Ensure analytics only load after consent.',links:['https://www.cookieyes.com','https://www.osano.com']});
   else res.push({id:'priv_cookie',title:'Cookie consent appears configured',severity:'pass',category:'Privacy',what:'Cookie/GDPR consent mechanism detected.',why:'Required for GDPR compliance.',fix:'Ensure analytics and tracking scripts only fire after consent.',links:[]});
 
+  // JWT / token in localStorage check
+  const jwtPatterns=[
+    /localStorage\.setItem\s*\(\s*["'][^"']*token[^"']*["']/gi,
+    /localStorage\.setItem\s*\(\s*["'][^"']*jwt[^"']*["']/gi,
+    /localStorage\.setItem\s*\(\s*["'][^"']*auth[^"']*["']/gi,
+    /localStorage\.setItem\s*\(\s*["'][^"']*session[^"']*["']/gi,
+  ];
+  const jwtInStorage=jwtPatterns.some(p=>p.test(html));
+  if(jwtInStorage){
+    res.push({id:'sec_jwt_storage',title:'Auth tokens stored in localStorage',severity:'high',category:'Security',what:'JavaScript stores authentication tokens in localStorage.',why:'localStorage is accessible to any JS on the page — XSS attacks can steal tokens instantly. This bypasses all HTTPS protections.',fix:'Move tokens to httpOnly cookies instead:\ndocument.cookie = "token=...; HttpOnly; Secure; SameSite=Strict"\nLocalStorage is fine for non-sensitive preferences only.',links:['https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html']});
+  }else{
+    res.push({id:'sec_jwt_storage',title:'No auth tokens detected in localStorage',severity:'pass',category:'Security',what:'No patterns of JWT/token storage in localStorage found.',why:'Keeping tokens out of localStorage prevents XSS token theft.',fix:'Use httpOnly cookies for session tokens.',links:[]});
+  }
   const techSigs={
     'WordPress':/<meta[^>]+name=["']generator["'][^>]+WordPress/i,
     'Next.js':/\/__next|next\/static/i,
@@ -308,8 +321,58 @@ async function checkSEO(domain){
   return res;
 }
 
+async function checkSecrets(domain){
+  const res=[];
+  const data=await proxy('https://'+domain);
+  const html=data.text||'';
+
+  const patterns=[
+    {name:'OpenAI API Key',regex:/sk-[a-zA-Z0-9]{32,}/g},
+    {name:'Google API Key',regex:/AIza[0-9A-Za-z\-_]{35}/g},
+    {name:'AWS Access Key',regex:/AKIA[0-9A-Z]{16}/g},
+    {name:'AWS Secret Key',regex:/aws_secret[_\s]*=\s*["'][^"']{20,}/gi},
+    {name:'Stripe Key',regex:/sk_live_[0-9a-zA-Z]{24,}/g},
+    {name:'GitHub Token',regex:/ghp_[a-zA-Z0-9]{36}/g},
+    {name:'Bearer Token',regex:/Bearer\s+[a-zA-Z0-9\-_]{20,}/g},
+    {name:'Private Key Block',regex:/-----BEGIN (RSA |EC )?PRIVATE KEY-----/g},
+    {name:'Supabase Key',regex:/eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}/g},
+  ];
+
+  const found=[];
+  for(const p of patterns){
+    if(p.regex.test(html))found.push(p.name);
+  }
+
+  if(found.length>0){
+    res.push({id:'sec_secrets',title:`Exposed secrets detected: ${found.join(', ')}`,severity:'critical',category:'Security',what:`Found potential secrets in page source: ${found.join(', ')}`,why:'Exposed API keys can be used by attackers to access your services, incur costs, or steal data. This is one of the most common causes of data breaches.',fix:'Immediately revoke and rotate any exposed keys.\nMove all secrets to environment variables on your server.\nNever include API keys in frontend code or public repos.',links:['https://haveibeenpwned.com','https://github.com/trufflesecurity/trufflehog']});
+  }else{
+    res.push({id:'sec_secrets',title:'No exposed API keys or secrets detected',severity:'pass',category:'Security',what:'No common API key patterns found in page source.',why:'Keeping secrets out of frontend code prevents credential theft.',fix:'Continue using environment variables. Run truffleHog on your repo periodically.',links:[]});
+  }
+  return res;
+}
+
 async function checkInfra(domain){
   const res=[];
+  // Debug endpoints check
+  const debugPaths=[
+    '/.env','/.env.local','/.env.backup','/debug','/admin',
+    '/swagger','/swagger-ui.html','/api/docs','/api-docs',
+    '/graphql','/phpinfo.php','/_debug','/server-status',
+    '/actuator','/actuator/health','/actuator/env',
+    '/.git/config','/.DS_Store','/config.json','/secrets.json'
+  ];
+  const debugFound=[];
+  await Promise.all(debugPaths.map(async path=>{
+    try{
+      const r=await fetch(`https://${domain}${path}`,{method:'HEAD',signal:AbortSignal.timeout(4000)});
+      if(r.status===200)debugFound.push(path);
+    }catch{}
+  }));
+  if(debugFound.length>0){
+    res.push({id:'inf_debug',title:`Exposed debug/config endpoints found`,severity:'critical',category:'Security',what:`These paths returned HTTP 200: ${debugFound.join(', ')}`,why:'Exposed .env files, admin panels, and debug routes are the #1 way hackers gain full server access. This is extremely dangerous.',fix:'Immediately block these paths in your server/hosting config.\nFor Netlify add to netlify.toml:\n[[redirects]]\n  from = "/.env"\n  to = "/404"\n  status = 404',links:['https://docs.netlify.com/routing/redirects/']});
+  }else{
+    res.push({id:'inf_debug',title:'No exposed debug or config endpoints',severity:'pass',category:'Security',what:`Checked ${debugPaths.length} common sensitive paths — all returned non-200.`,why:'Hidden debug endpoints are a major attack vector.',fix:'Re-run this scan after deployments to catch accidental exposures.',links:[]});
+  }
 
   const robRes=await rawProxy('https://'+domain+'/robots.txt');
   if(robRes.ok&&robRes.text&&robRes.text.includes('User-agent')){
@@ -357,18 +420,92 @@ async function checkInfra(domain){
   return res;
 }
 
+async function checkCORS(domain){
+  const res=[];
+  try{
+    const r=await fetch(`https://${domain}`,{
+      method:'HEAD',
+      headers:{'Origin':'https://evil.com'},
+      signal:AbortSignal.timeout(6000)
+    });
+    const acao=r.headers.get('access-control-allow-origin');
+    const acac=r.headers.get('access-control-allow-credentials');
+
+    if(acao==='*'){
+      res.push({id:'cors_wildcard',title:'CORS wildcard (*) enabled',severity:'medium',category:'Security',what:'Access-Control-Allow-Origin: * allows any website to make requests to your site.',why:'Any malicious site can make authenticated requests to your API on behalf of your users.',fix:'Replace * with your specific domain:\nAccess-Control-Allow-Origin: https://yourdomain.com\nNever combine * with Allow-Credentials: true.',links:[]});
+    }else if(acao&&acao.includes('evil.com')){
+      res.push({id:'cors_reflect',title:'CORS reflects arbitrary origins — critical',severity:'critical',category:'Security',what:'Your server reflects back any Origin header without validation.',why:'Attackers can make cross-origin requests as if they were your trusted domain, bypassing all same-origin protections.',fix:'Maintain an allowlist of trusted origins and only reflect those:\nconst allowed = ["https://yourdomain.com"];\nif(allowed.includes(req.headers.origin)) res.setHeader("Access-Control-Allow-Origin", req.headers.origin);',links:[]});
+    }else{
+      res.push({id:'cors_ok',title:'CORS policy looks safe',severity:'pass',category:'Security',what:`Access-Control-Allow-Origin: ${acao||'not set (good for non-API sites)'}`,why:'Restrictive CORS prevents unauthorized cross-origin requests.',fix:'If you run an API, explicitly allowlist trusted origins only.',links:[]});
+    }
+
+    if(acao==='*'&&acac==='true'){
+      res.push({id:'cors_cred',title:'Dangerous CORS: wildcard + credentials',severity:'critical',category:'Security',what:'Allow-Origin: * combined with Allow-Credentials: true.',why:'This combination allows any site to make credentialed requests — browsers normally block this but misconfigurations can bypass it.',fix:'Never use * with credentials. Use explicit origin allowlist.',links:[]});
+    }
+  }catch{
+    res.push({id:'cors_skip',title:'CORS check skipped (network error)',severity:'info',category:'Security',what:'Could not complete CORS preflight check.',why:'CORS misconfiguration can expose your API to cross-origin attacks.',fix:'Test manually at cors.sh or use your browser DevTools Network tab.',links:['https://cors.sh']});
+  }
+  return res;
+}
+
+async function checkSubdomains(domain){
+  const res=[];
+  const baseDomain=domain.replace(/^www\./,'');
+  const subs=['www','api','dev','staging','app','mail','admin','test','beta','dashboard'];
+  const takeovers=[
+    {pattern:/There is no app here/i,service:'Heroku'},
+    {pattern:/No such app/i,service:'Heroku'},
+    {pattern:/Repository not found/i,service:'GitHub Pages'},
+    {pattern:/The site you were looking for couldn't be found/i,service:'Tumblr'},
+    {pattern:/This UserVoice subdomain is currently available/i,service:'UserVoice'},
+    {pattern:/Fastly error: unknown domain/i,service:'Fastly'},
+    {pattern:/This page is not connected/i,service:'Webflow'},
+    {pattern:/Unrecognized domain/i,service:'Shopify'},
+  ];
+
+  const vulnerable=[];
+  await Promise.all(subs.map(async sub=>{
+    try{
+      const r=await proxy(`https://${sub}.${baseDomain}`);
+      if(r.ok&&r.text){
+        for(const t of takeovers){
+          if(t.pattern.test(r.text)){
+            vulnerable.push(`${sub}.${baseDomain} (${t.service})`);
+          }
+        }
+      }
+    }catch{}
+  }));
+
+  if(vulnerable.length>0){
+    res.push({id:'sub_takeover',title:`Subdomain takeover risk: ${vulnerable.join(', ')}`,severity:'critical',category:'Infrastructure',what:`These subdomains show signs of being claimable: ${vulnerable.join(', ')}`,why:'An attacker can claim your subdomain on the third-party service and serve malicious content under your brand.',fix:'Delete dangling DNS records for subdomains you no longer use.\nAudit all CNAME records at your DNS provider.',links:[]});
+  }else{
+    res.push({id:'sub_takeover',title:'No subdomain takeover vulnerabilities found',severity:'pass',category:'Infrastructure',what:`Checked ${subs.length} common subdomains for takeover signatures.`,why:'Dangling subdomains can be claimed by attackers.',fix:'Audit DNS records whenever you decommission a service.',links:[]});
+  }
+  return res;
+}
+
 async function runAll(domain,onProgress){
   const clean=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').trim();
   let all=[];
   onProgress(.1,'ssl');
   const a=await checkSSLHeaders(clean);
   all=[...all,...a];
-  onProgress(.45,'seo');
+  onProgress(.3,'seo');
   const b=await checkSEO(clean);
   all=[...all,...b];
-  onProgress(.8,'infra');
+  onProgress(.55,'infra');
   const c=await checkInfra(clean);
   all=[...all,...c];
+  onProgress(.7,'secrets');
+  const d=await checkSecrets(clean);
+  all=[...all,...d];
+  onProgress(.8,'cors');
+  const e=await checkCORS(clean);
+  all=[...all,...e];
+  onProgress(.9,'subdomains');
+  const f=await checkSubdomains(clean);
+  all=[...all,...f];
   onProgress(1,'done');
   return all;
 }
