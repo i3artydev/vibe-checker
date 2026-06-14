@@ -253,7 +253,7 @@ async function checkSEO(domain){
   if(!twCard)res.push({id:'seo_tw',title:'Twitter/X card tags missing',severity:'low',category:'SEO',what:'No twitter:card meta tags found.',why:'Without these, shared links on X show only plain text, not a rich card with image.',fix:'Add: <meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="...">\n<meta name="twitter:description" content="...">',links:[]});
   else res.push({id:'seo_tw',title:'Twitter/X card tags present',severity:'pass',category:'SEO',what:'twitter:card found.',why:'X will render rich link cards.',fix:'Test with Twitter card validator.',links:['https://cards-dev.twitter.com/validator']});
 
-  if(!html.match(/<link[^>]+rel=["']canonical["']/i))res.push({id:'seo_can',title:'Canonical URL tag missing',severity:'low',category:'SEO',what:'No canonical link tag found.',why:'Google may treat www vs non-www as duplicates, splitting ranking power.',fix:'Add: <link rel="canonical" href="https://websitesecurityscanner.netlify.app/">',links:[]});
+  if(!html.match(/<link[^>]+rel=["']canonical["']/i))res.push({id:'seo_can',title:'Canonical URL tag missing',severity:'low',category:'SEO',what:'No canonical link tag found.',why:'Google may treat www vs non-www as duplicates, splitting ranking power.',fix:'Add: <link rel="canonical" href="https://yourdomain.com/">',links:[]});
   else res.push({id:'seo_can',title:'Canonical URL set',severity:'pass',category:'SEO',what:'Canonical tag found.',why:'Prevents duplicate content issues.',fix:'Ensure it points to your preferred URL.',links:[]});
 
   if(!html.match(/<html[^>]+lang=/i))res.push({id:'seo_lang',title:'HTML lang attribute missing',severity:'low',category:'SEO',what:'No lang attribute on <html> tag.',why:'Screen readers and search engines need this to understand page language. Also affects accessibility compliance.',fix:'Add: <html lang="en">',links:[]});
@@ -317,7 +317,7 @@ async function checkInfra(domain){
     if(hasDisallowAll)res.push({id:'inf_rob_block',title:'robots.txt blocks all crawlers',severity:'high',category:'SEO',what:'Disallow: / is set without specific Allow rules — this blocks all search engine indexing.',why:'Your site will disappear from Google if crawlers are blocked.',fix:'Remove "Disallow: /" or add specific Allow rules for pages you want indexed.\nExample: Disallow: /admin/ (block only admin area)',links:[]});
     else res.push({id:'inf_rob_ok',title:'robots.txt valid',severity:'pass',category:'SEO',what:'robots.txt found with valid User-agent rules.',why:'Search engines can discover and respect your crawl preferences.',fix:'Ensure you\'re not accidentally blocking important pages.',links:[]});
   }else{
-    res.push({id:'inf_rob_miss',title:'robots.txt missing',severity:'medium',category:'SEO',what:'No valid robots.txt at /robots.txt',why:'Without it, crawlers may index admin pages, staging, or duplicate content.',fix:'Create /robots.txt:\nUser-agent: *\nAllow: /\nSitemap: https://websitesecurityscanner.netlify.app/sitemap.xml',links:[]});
+    res.push({id:'inf_rob_miss',title:'robots.txt missing',severity:'medium',category:'SEO',what:'No valid robots.txt at /robots.txt',why:'Without it, crawlers may index admin pages, staging, or duplicate content.',fix:'Create /robots.txt:\nUser-agent: *\nAllow: /\nSitemap: https://yourdomain.com/sitemap.xml',links:[]});
   }
 
   const smRes=await rawProxy('https://'+domain+'/sitemap.xml');
@@ -332,7 +332,7 @@ async function checkInfra(domain){
   if(wellKnown.ok&&wellKnown.text&&wellKnown.text.includes('Contact')){
     res.push({id:'inf_sectxt',title:'security.txt present',severity:'pass',category:'Security',what:'security.txt found at /.well-known/security.txt',why:'Researchers can report vulnerabilities responsibly.',fix:'Keep the contact and expiry fields up to date.',links:[]});
   }else{
-    res.push({id:'inf_sectxt',title:'security.txt missing',severity:'info',category:'Security',what:'No security.txt at /.well-known/security.txt',why:'security.txt lets security researchers know how to responsibly disclose vulnerabilities they find.',fix:'Create /.well-known/security.txt:\nContact: mailto:i3arty.dev@gmail.com\nExpires: 2026-12-31T23:59:00.000Z',links:['https://securitytxt.org']});
+    res.push({id:'inf_sectxt',title:'security.txt missing',severity:'info',category:'Security',what:'No security.txt at /.well-known/security.txt',why:'security.txt lets security researchers know how to responsibly disclose vulnerabilities they find.',fix:'Create /.well-known/security.txt:\nContact: mailto:your@email.com\nExpires: 2026-12-31T23:59:00.000Z',links:['https://securitytxt.org']});
   }
 
   const sw=await rawProxy('https://'+domain+'/service-worker.js');
