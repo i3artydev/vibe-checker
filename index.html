@@ -321,6 +321,153 @@ async function checkSEO(domain){
   return res;
 }
 
+async function checkMixedContent(domain){
+  const res=[];
+  const data=await proxy('https://'+domain);
+  const html=data.text||'';
+
+  const mixedPatterns=[
+    {tag:'src',regex:/<[^>]+src=["']http:\/\/[^"']+["']/gi},
+    {tag:'href',regex:/<link[^>]+href=["']http:\/\/[^"']+["']/gi},
+    {tag:'action',regex:/<form[^>]+action=["']http:\/\/[^"']+["']/gi},
+  ];
+
+  const found=[];
+  for(const p of mixedPatterns){
+    const matches=html.match(p.regex)||[];
+    matches.forEach(m=>{
+      const urlMatch=m.match(/http:\/\/[^"']+/);
+      if(urlMatch)found.push(urlMatch[0].substring(0,60));
+    });
+  }
+
+  if(found.length>0){
+    res.push({id:'sec_mixed',title:`Mixed content detected (${found.length} HTTP resource${found.length>1?'s':''})`,severity:'high',category:'Security',what:`Found HTTP resources on an HTTPS page:\n${found.slice(0,5).join('\n')}`,why:'Mixed content means your HTTPS page loads insecure HTTP resources. Browsers block these and it breaks functionality. Also a security risk — HTTP resources can be intercepted and modified.',fix:'Replace all http:// resource URLs with https://\nOr use protocol-relative URLs: //example.com/resource.js\nCheck Chrome DevTools Console for mixed content warnings.',links:[]});
+  }else{
+    res.push({id:'sec_mixed',title:'No mixed content detected',severity:'pass',category:'Security',what:'All detected resources appear to use HTTPS.',why:'Consistent HTTPS prevents resource interception.',fix:'Re-check after adding new third-party scripts or embeds.',links:[]});
+  }
+  return res;
+}
+
+async function checkSensitiveFiles(domain){
+  const res=[];
+  const sensitiveFiles=[
+    {path:'/.git/HEAD',name:'.git exposed',severity:'critical',reason:'Full source code accessible'},
+    {path:'/.git/config',name:'.git config',severity:'critical',reason:'Repository config exposed'},
+    {path:'/package.json',name:'package.json',severity:'high',reason:'Dependency list exposed'},
+    {path:'/package-lock.json',name:'package-lock.json',severity:'high',reason:'Full dependency tree exposed'},
+    {path:'/.env',name:'.env file',severity:'critical',reason:'Environment secrets exposed'},
+    {path:'/.env.local',name:'.env.local',severity:'critical',reason:'Local secrets exposed'},
+    {path:'/.env.backup',name:'.env.backup',severity:'critical',reason:'Backup secrets exposed'},
+    {path:'/backup.zip',name:'backup.zip',severity:'critical',reason:'Full site backup exposed'},
+    {path:'/backup.sql',name:'backup.sql',severity:'critical',reason:'Database dump exposed'},
+    {path:'/dump.sql',name:'dump.sql',severity:'critical',reason:'Database dump exposed'},
+    {path:'/database.sql',name:'database.sql',severity:'critical',reason:'Database exposed'},
+    {path:'/wp-config.php',name:'wp-config.php',severity:'critical',reason:'WordPress config exposed'},
+    {path:'/config.json',name:'config.json',severity:'high',reason:'Config file exposed'},
+    {path:'/secrets.json',name:'secrets.json',severity:'critical',reason:'Secrets file exposed'},
+    {path:'/.DS_Store',name:'.DS_Store',severity:'medium',reason:'Directory structure exposed'},
+    {path:'/composer.json',name:'composer.json',severity:'medium',reason:'PHP dependencies exposed'},
+    {path:'/Dockerfile',name:'Dockerfile',severity:'medium',reason:'Infrastructure details exposed'},
+    {path:'/docker-compose.yml',name:'docker-compose.yml',severity:'high',reason:'Infrastructure config exposed'},
+  ];
+
+  const exposed=[];
+  await Promise.all(sensitiveFiles.map(async f=>{
+    try{
+      const r=await fetch(`https://${domain}${f.path}`,{method:'HEAD',signal:AbortSignal.timeout(4000)});
+      if(r.status===200)exposed.push(f);
+    }catch{}
+  }));
+
+  if(exposed.length>0){
+    const worstSev=exposed.some(f=>f.severity==='critical')?'critical':exposed.some(f=>f.severity==='high')?'high':'medium';
+    res.push({id:'sec_files',title:`${exposed.length} sensitive file${exposed.length>1?'s':''} publicly exposed`,severity:worstSev,category:'Security',what:`Accessible files:\n${exposed.map(f=>`${f.path} — ${f.reason}`).join('\n')}`,why:'Exposed config files, database dumps, and source code give attackers everything they need to compromise your app completely.',fix:'Block these paths immediately in your hosting config.\n\nFor Netlify (netlify.toml):\n[[redirects]]\n  from = "/.git/*"\n  to = "/404"\n  status = 404\n\nFor Vercel (vercel.json):\n{"routes":[{"src":"/.git/(.*)","status":404}]}',links:['https://docs.netlify.com/routing/redirects/']});
+  }else{
+    res.push({id:'sec_files',title:'No sensitive files exposed',severity:'pass',category:'Security',what:`Checked ${sensitiveFiles.length} common sensitive paths — none publicly accessible.`,why:'Exposed config and backup files are a top attack vector.',fix:'Re-run after every deployment to catch accidental exposures.',links:[]});
+  }
+  return res;
+}
+
+async function checkHTTPSRedirect(domain){
+  const res=[];
+  try{
+    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('http://'+domain)}`,{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    const finalUrl=d?.status?.url||'';
+    const redirected=finalUrl.startsWith('https://');
+
+    if(redirected){
+      res.push({id:'https_redirect',title:'HTTP redirects to HTTPS correctly',severity:'pass',category:'Security',what:'Visiting the HTTP version automatically redirects to HTTPS.',why:'Ensures all users get a secure connection even if they type http://',fix:'Keep this configured. Also consider adding HSTS to prevent the initial HTTP request.',links:[]});
+    }else{
+      res.push({id:'https_redirect',title:'HTTP does not redirect to HTTPS',severity:'high',category:'Security',what:'Your site is accessible over plain HTTP without redirecting to HTTPS.',why:'Users who type your domain without https:// get an unencrypted connection. Credentials and data are exposed in transit.',fix:'Add a redirect rule:\n\nNetlify (netlify.toml):\n[[redirects]]\n  from = "http://yourdomain.com/*"\n  to = "https://yourdomain.com/:splat"\n  status = 301\n  force = true\n\nVercel: automatic by default.',links:[]});
+    }
+  }catch{
+    res.push({id:'https_redirect',title:'HTTP→HTTPS redirect check skipped',severity:'info',category:'Security',what:'Could not verify HTTP redirect behavior.',why:'HTTP to HTTPS redirect ensures all traffic is encrypted.',fix:'Test manually by typing http:// before your domain in a browser.',links:[]});
+  }
+  return res;
+}
+
+async function checkSourceMaps(domain){
+  const res=[];
+  const data=await proxy('https://'+domain);
+  const html=data.text||'';
+
+  const scriptMatches=html.match(/<script[^>]+src=["']([^"']+\.js)["']/gi)||[];
+  const jsFiles=scriptMatches.map(m=>{
+    const match=m.match(/src=["']([^"']+\.js)["']/i);
+    return match?match[1]:null;
+  }).filter(Boolean).slice(0,5);
+
+  const exposedMaps=[];
+  await Promise.all(jsFiles.map(async jsPath=>{
+    try{
+      const fullPath=jsPath.startsWith('http')?jsPath:`https://${domain}${jsPath.startsWith('/')?jsPath:'/'+jsPath}`;
+      const r=await fetch(`${fullPath}.map`,{method:'HEAD',signal:AbortSignal.timeout(4000)});
+      if(r.status===200)exposedMaps.push(jsPath+'.map');
+    }catch{}
+  }));
+
+  // Also check common map paths directly
+  const commonMaps=['main.js.map','app.js.map','bundle.js.map','index.js.map'];
+  await Promise.all(commonMaps.map(async f=>{
+    try{
+      const r=await fetch(`https://${domain}/${f}`,{method:'HEAD',signal:AbortSignal.timeout(4000)});
+      if(r.status===200&&!exposedMaps.includes('/'+f))exposedMaps.push('/'+f);
+    }catch{}
+  }));
+
+  if(exposedMaps.length>0){
+    res.push({id:'sec_sourcemaps',title:`Source maps publicly exposed (${exposedMaps.length} found)`,severity:'high',category:'Security',what:`Exposed map files:\n${exposedMaps.join('\n')}`,why:'Source maps reveal your complete original source code to anyone — including proprietary business logic, internal API endpoints, and hardcoded values stripped from production builds.',fix:'Disable source map generation in production:\n\nWebpack: devtool: false\nVite: build: { sourcemap: false }\nCreate React App: set GENERATE_SOURCEMAP=false in .env\n\nOr block .map files at hosting level.',links:[]});
+  }else{
+    res.push({id:'sec_sourcemaps',title:'No exposed source maps detected',severity:'pass',category:'Security',what:'No publicly accessible .js.map files found.',why:'Source maps in production expose your full source code.',fix:'Ensure GENERATE_SOURCEMAP=false in production builds.',links:[]});
+  }
+  return res;
+}
+
+async function checkPackageJson(domain){
+  const res=[];
+  try{
+    const r=await rawProxy(`https://${domain}/package.json`);
+    if(r.ok&&r.text&&r.text.includes('"dependencies"')){
+      let deps=[];
+      try{
+        const pkg=JSON.parse(r.text);
+        deps=[
+          ...Object.keys(pkg.dependencies||{}),
+          ...Object.keys(pkg.devDependencies||{})
+        ];
+      }catch{}
+      res.push({id:'sec_pkg',title:'package.json publicly accessible',severity:'high',category:'Security',what:`Your package.json is publicly readable${deps.length>0?` — exposes ${deps.length} dependencies`:''}`,why:'Attackers use your dependency list to find known CVEs for your exact package versions and craft targeted exploits.',fix:'Block /package.json in your hosting config:\n\nNetlify (netlify.toml):\n[[redirects]]\n  from = "/package.json"\n  to = "/404"\n  status = 404\n\nVercel (vercel.json):\n{"routes":[{"src":"/package.json","status":404}]}',links:['https://nvd.nist.gov']});
+    }else{
+      res.push({id:'sec_pkg',title:'package.json not publicly accessible',severity:'pass',category:'Security',what:'No package.json found at the root of your domain.',why:'Hiding dependencies prevents targeted CVE attacks.',fix:'Keep this blocked in production.',links:[]});
+    }
+  }catch{
+    res.push({id:'sec_pkg',title:'package.json check skipped',severity:'info',category:'Security',what:'Could not verify package.json exposure.',why:'Exposed package.json reveals your full dependency tree.',fix:'Manually check: visit https://yourdomain.com/package.json in your browser.',links:[]});
+  }
+  return res;
+}
+
 async function checkSecrets(domain){
   const res=[];
   const data=await proxy('https://'+domain);
@@ -497,15 +644,30 @@ async function runAll(domain,onProgress){
   onProgress(.55,'infra');
   const c=await checkInfra(clean);
   all=[...all,...c];
-  onProgress(.7,'secrets');
+onProgress(.65,'secrets');
   const d=await checkSecrets(clean);
   all=[...all,...d];
-  onProgress(.8,'cors');
+  onProgress(.72,'cors');
   const e=await checkCORS(clean);
   all=[...all,...e];
-  onProgress(.9,'subdomains');
+  onProgress(.79,'subdomains');
   const f=await checkSubdomains(clean);
   all=[...all,...f];
+  onProgress(.84,'mixed');
+  const g=await checkMixedContent(clean);
+  all=[...all,...g];
+  onProgress(.88,'files');
+  const h=await checkSensitiveFiles(clean);
+  all=[...all,...h];
+  onProgress(.92,'https');
+  const i=await checkHTTPSRedirect(clean);
+  all=[...all,...i];
+  onProgress(.96,'sourcemaps');
+  const j=await checkSourceMaps(clean);
+  all=[...all,...j];
+  onProgress(.98,'package');
+  const k=await checkPackageJson(clean);
+  all=[...all,...k];
   onProgress(1,'done');
   return all;
 }
@@ -666,7 +828,7 @@ function App(){
         )
       ),
       React.createElement('div',{className:'chips'},
-        ['SSL','Security headers','SEO tags','Open Graph','Schema.org','Alt text','robots.txt','Sitemap','Cookie consent','Privacy policy','TTFB','PWA','security.txt','Tech stack','Email security','API key exposure','Debug endpoints','JWT storage','CORS policy','Subdomain takeover'].map(c=>React.createElement('span',{className:'chip',key:c},c))
+        ['SSL','Security headers','SEO tags','Open Graph','Schema.org','Alt text','robots.txt','Sitemap','Cookie consent','Privacy policy','TTFB','PWA','security.txt','Tech stack','Email security','API key exposure','Debug endpoints','JWT storage','CORS policy','Subdomain takeover','Mixed content','Sensitive files','HTTP→HTTPS','Source maps','package.json'].map(c=>React.createElement('span',{className:'chip',key:c},c))
       )
     ),
     scanning&&React.createElement('div',{className:'prog-wrap'},
