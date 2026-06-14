@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://websitesecurityscanner.netlify.app/sitemap.xml

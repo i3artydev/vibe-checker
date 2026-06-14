@@ -1,0 +1,616 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vibe Checker – Security, SEO & Performance Audit Tool</title>
+<meta name="description" content="Free website audit tool. 50+ automated checks across security, SEO, AEO, performance, privacy and accessibility. Instant results, AI-powered fix guidance.">
+<meta property="og:title" content="Vibe Checker – Website Security & SEO Audit">
+<meta property="og:description" content="50+ automated checks across security, SEO, AEO, performance, privacy and accessibility. Free & instant.">
+<meta property="og:image" content="https://websitesecurityscanner.netlify.app/og-image.png">
+<meta property="og:url" content="https://websitesecurityscanner.netlify.app/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Vibe Checker – Website Audit Tool">
+<meta name="twitter:description" content="50+ automated checks across security, SEO, AEO, performance & more. Free & instant.">
+<link rel="canonical" href="https://websitesecurityscanner.netlify.app/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" integrity="sha384-mY6asDzXlnHeimHHXw8cavPeArhEcAfnCibDFiaDPex3Fudo+edh/hnT7siZz8bg" crossorigin="anonymous">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--surface2:#f0f0ed;--surface3:#e8e8e4;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--border3:rgba(0,0,0,0.2);
+  --text:#181816;--text2:#56564f;--text3:#8a8a82;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-text:#791F1F;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-text:#633806;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-text:#0C447C;
+  --green:#3B6D11;--green-bg:#EAF3DE;--green-text:#27500A;
+  --gray-bg:#F1EFE8;--gray-text:#444441;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-text:#085041;
+  --r:10px;--rs:6px;--font:-apple-system,'Segoe UI',sans-serif;--mono:'SF Mono','Fira Code',monospace
+}
+[data-theme=dark]{
+  --bg:#111110;--surface:#1c1c1a;--surface2:#252523;--surface3:#2e2e2b;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+  --text:#f0f0ec;--text2:#a0a098;--text3:#62625a;
+  --red:#F09595;--red-bg:#501313;--red-text:#F7C1C1;
+  --amber:#EF9F27;--amber-bg:#412402;--amber-text:#FAC775;
+  --blue:#85B7EB;--blue-bg:#042C53;--blue-text:#B5D4F4;
+  --green:#97C459;--green-bg:#173404;--green-text:#C0DD97;
+  --gray-bg:#2C2C2A;--gray-text:#D3D1C7;
+  --purple:#AFA9EC;--purple-bg:#26215C;--purple-text:#CECBF6;
+  --teal:#5DCAA5;--teal-bg:#04342C;--teal-text:#9FE1CB;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;transition:background .2s,color .2s}
+.app{max-width:860px;margin:0 auto;padding:1.75rem 1.25rem 4rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon i{color:var(--bg);font-size:17px}
+.logo-name{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--text3);letter-spacing:.4px;margin-top:-1px}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.icon-btn{background:none;border:.5px solid var(--border2);border-radius:var(--rs);padding:6px 10px;cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;gap:5px;transition:background .15s}
+.icon-btn:hover{background:var(--surface2)}
+.hero{margin-bottom:1.5rem}
+.hero h1{font-size:24px;font-weight:600;letter-spacing:-.5px;line-height:1.3;margin-bottom:.3rem}
+.hero p{color:var(--text2);font-size:13.5px}
+.scan-box{background:var(--surface);border:.5px solid var(--border2);border-radius:var(--r);padding:1.1rem;margin-bottom:1.25rem}
+.scan-row{display:flex;gap:8px;margin-bottom:10px}
+.domain-input{flex:1;background:var(--surface2);border:.5px solid var(--border2);border-radius:var(--rs);padding:9px 13px;font-size:14px;color:var(--text);font-family:var(--mono);outline:none;transition:border-color .15s}
+.domain-input::placeholder{color:var(--text3);font-family:var(--font)}
+.domain-input:focus{border-color:var(--border3)}
+.scan-btn{background:var(--text);color:var(--bg);border:none;border-radius:var(--rs);padding:9px 18px;font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s}
+.scan-btn:hover{opacity:.84}
+.scan-btn:disabled{opacity:.38;cursor:not-allowed}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 8px;border-radius:20px;border:.5px solid var(--border2);color:var(--text3);background:var(--surface2)}
+.prog-wrap{margin-bottom:1.25rem}
+.prog-bar{height:2px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.prog-fill{height:100%;background:var(--text);border-radius:2px;transition:width .35s}
+.lc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.lc-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;color:var(--text2)}
+.lc-item i{width:15px;text-align:center;font-size:13px}
+.lc-item.done i{color:var(--green)}
+.lc-item.running i{color:var(--amber);animation:pulse 1s infinite}
+.lc-item.pending i{color:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.score-row{display:grid;grid-template-columns:auto 1fr;gap:16px;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1.1rem;align-items:center}
+.ring-wrap{position:relative;width:64px;height:64px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-score{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600}
+.score-detail h3{font-size:15px;font-weight:600;margin-bottom:2px}
+.score-detail p{font-size:12px;color:var(--text2)}
+.score-cats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.score-cat{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:.5px solid var(--border)}
+.summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.1rem}
+.sum-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:.8rem;text-align:center}
+.sum-num{font-size:20px;font-weight:600;letter-spacing:-.4px}
+.sum-lbl{font-size:10px;color:var(--text3);margin-top:1px;letter-spacing:.3px;text-transform:uppercase}
+.filters{display:flex;gap:5px;margin-bottom:.9rem;flex-wrap:wrap}
+.f-btn{background:none;border:.5px solid var(--border2);border-radius:20px;padding:4px 11px;font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s;white-space:nowrap}
+.f-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.sec-lbl{font-size:10.5px;font-weight:500;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem;margin-top:1.25rem;display:flex;align-items:center;gap:6px}
+.sec-lbl i{font-size:13px}
+.issue-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.issue-card:hover{border-color:var(--border2)}
+.issue-card.open{border-color:var(--border3)}
+.ih{display:flex;align-items:center;gap:9px;padding:11px 13px}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sdot.critical,.sdot.high{background:var(--red)}
+.sdot.medium{background:var(--amber)}
+.sdot.low{background:var(--blue)}
+.sdot.info{background:var(--text3)}
+.sdot.pass{background:var(--green)}
+.ititle{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.icat{font-size:10px;color:var(--text3);background:var(--surface2);border-radius:4px;padding:2px 6px;margin-right:3px;white-space:nowrap}
+.sbadge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap}
+.sbadge.critical,.sbadge.high{background:var(--red-bg);color:var(--red-text)}
+.sbadge.medium{background:var(--amber-bg);color:var(--amber-text)}
+.sbadge.low{background:var(--blue-bg);color:var(--blue-text)}
+.sbadge.info{background:var(--gray-bg);color:var(--gray-text)}
+.sbadge.pass{background:var(--green-bg);color:var(--green-text)}
+.chev{font-size:13px;color:var(--text3);transition:transform .2s}
+.issue-card.open .chev{transform:rotate(180deg)}
+.ibody{border-top:.5px solid var(--border);padding:13px 13px 15px;display:none}
+.issue-card.open .ibody{display:block}
+.isec{margin-bottom:10px}
+.isec:last-child{margin-bottom:0}
+.isec-lbl{font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.isec-txt{font-size:13px;color:var(--text2);line-height:1.65}
+.isec-txt.mono{font-family:var(--mono);font-size:11.5px;background:var(--surface2);border-radius:var(--rs);padding:8px 10px;color:var(--text);white-space:pre-wrap;word-break:break-all}
+.ai-box{background:var(--purple-bg);border-radius:var(--rs);padding:10px 12px;margin-top:9px}
+.ai-lbl{font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--purple-text);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.ai-txt{font-size:12.5px;color:var(--purple-text);line-height:1.65}
+.links-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ext-link{font-size:11.5px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:3px;padding:3px 8px;border:.5px solid var(--blue-bg);border-radius:20px;background:var(--blue-bg)}
+.ext-link:hover{opacity:.8}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:3rem 2rem;color:var(--text3)}
+.empty i{font-size:38px;display:block;margin-bottom:.75rem;opacity:.5}
+.pass-sec{opacity:.65}
+@media(max-width:580px){
+  .summary-row{grid-template-columns:repeat(3,1fr)}
+  .lc-grid{grid-template-columns:1fr}
+  .score-row{grid-template-columns:1fr}
+}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Vibe Checker",
+  "description": "50+ automated checks across security, SEO, AEO, performance, privacy and accessibility.",
+  "url": "https://websitesecurityscanner.netlify.app/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+<script>
+const {useState,useEffect,useRef,useCallback}=React;
+
+const SEV_ORDER={critical:0,high:1,medium:2,low:3,info:4,pass:5};
+
+const CAT_ICONS={
+  'Security':'ti-shield-lock','SEO':'ti-search','AEO':'ti-brain',
+  'Performance':'ti-rocket','Privacy':'ti-eye-off','Accessibility':'ti-accessible',
+  'Infrastructure':'ti-server','Tech Stack':'ti-code'
+};
+
+function scoreColor(s){return s>=80?'#3B6D11':s>=60?'#854F0B':'#A32D2D'}
+function scoreLabel(s){return s>=85?'Excellent health':s>=70?'Good, minor issues':s>=55?'Needs attention':s>=40?'Several issues found':'Critical issues — act now'}
+
+async function proxy(url){
+  try{
+    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(9000)});
+    const d=await r.json();
+    return{ok:d.status&&d.status.http_code<400,text:d.contents||'',headers:d.headers||{}};
+  }catch{return{ok:false,text:'',headers:{}}}
+}
+
+async function rawProxy(url){
+  try{
+    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(9000)});
+    if(!r.ok)return{ok:false,text:''};
+    return{ok:true,text:await r.text()};
+  }catch{return{ok:false,text:''}}
+}
+
+async function checkSSLHeaders(domain){
+  const res=[];
+  const t0=Date.now();
+  const data=await proxy('https://'+domain);
+  const elapsed=Date.now()-t0;
+  const hStr=JSON.stringify(data.headers||{}).toLowerCase();
+
+  const httpsReachable=data.ok||(data.text&&data.text.length>0);
+  if(httpsReachable){
+    res.push({id:'ssl_ok',title:'HTTPS / SSL is active',severity:'pass',category:'Security',what:'Your site loads successfully over HTTPS.',why:'HTTPS encrypts all data in transit, protecting users from eavesdropping.',fix:'Keep auto-renewing — check expiry at ssllabs.com',links:['https://www.ssllabs.com/ssltest/']});
+    if(data.text&&data.text.length>100&&elapsed<800)res.push({id:'ttfb_ok',title:'Fast server response (TTFB)',severity:'pass',category:'Performance',what:`Server responded in ~${elapsed}ms.`,why:'Time To First Byte under 800ms is considered good by Google Core Web Vitals.',fix:'Great! If TTFB grows, investigate server-side caching or CDN.',links:[]});
+    else if(data.text&&data.text.length>100&&elapsed<2000)res.push({id:'ttfb_med',title:'Slow server response time (TTFB)',severity:'medium',category:'Performance',what:`Server took ~${elapsed}ms to respond.`,why:'TTFB over 800ms hurts Core Web Vitals (LCP) and SEO rankings. Google recommends under 600ms.',fix:'Enable server-side caching (Redis, Varnish), use a CDN (Cloudflare), or upgrade your hosting tier. Check your database query times.',links:['https://pagespeed.web.dev/']});
+    else if(data.text&&data.text.length>100)res.push({id:'ttfb_high',title:'Very slow server response (TTFB)',severity:'high',category:'Performance',what:`Server took ~${elapsed}ms — well above the 800ms threshold.`,why:'Slow TTFB is the single biggest cause of poor Core Web Vitals scores and directly hurts Google ranking.',fix:'Immediate actions: enable Cloudflare (free), add server caching, check if your hosting is overloaded. Target under 600ms.',links:['https://pagespeed.web.dev/','https://www.cloudflare.com']});
+  }else{
+    res.push({id:'ssl_fail',title:'HTTPS / SSL not reachable or invalid',severity:'high',category:'Security',what:'Could not establish an HTTPS connection to your domain.',why:'Without HTTPS, all user data is sent in plain text. Chrome marks your site as "Not Secure".',fix:'Enable SSL via your host (most support free Let\'s Encrypt). Contact your hosting provider if unsure.',links:['https://letsencrypt.org','https://www.ssllabs.com/ssltest/']});
+  }
+
+  const headers=[
+    {key:'content-security-policy',id:'csp',title:'Content-Security-Policy (CSP) missing',pass:'CSP header present',sev:'high',cat:'Security',what:'CSP tells the browser which scripts, styles, and resources are allowed to load.',why:'Without CSP, attackers can inject malicious scripts (XSS) — OWASP #3 most common attack.',fix:"Add to server config:\nContent-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'\nStart in report-only mode first.",links:['https://csp-evaluator.withgoogle.com']},
+    {key:'strict-transport-security',id:'hsts',title:'HSTS header missing',pass:'HSTS enforced',sev:'medium',cat:'Security',what:'HSTS tells browsers to always use HTTPS, even if someone tries HTTP.',why:'Without HSTS, man-in-the-middle attackers can downgrade connections to unencrypted HTTP.',fix:'Add: Strict-Transport-Security: max-age=31536000; includeSubDomains\nOnly enable once your HTTPS is stable — this is hard to undo.',links:['https://hstspreload.org']},
+    {key:'x-frame-options',id:'frame',title:'Clickjacking protection missing',pass:'Clickjacking protection active',sev:'medium',cat:'Security',what:'X-Frame-Options prevents your site from being embedded in iframes on other sites.',why:'Without it, attackers use "clickjacking" — tricking users into clicking invisible overlaid elements.',fix:"Add: X-Frame-Options: DENY\nOr via CSP: Content-Security-Policy: frame-ancestors 'none'",links:[]},
+    {key:'x-content-type-options',id:'mime',title:'MIME sniffing protection missing',pass:'MIME sniffing blocked',sev:'low',cat:'Security',what:'Stops browsers from guessing file types.',why:'A browser might execute a file uploaded as an image if it looks like JavaScript.',fix:'Add: X-Content-Type-Options: nosniff',links:[]},
+    {key:'referrer-policy',id:'ref',title:'Referrer-Policy header missing',pass:'Referrer-Policy set',sev:'low',cat:'Security',what:'Controls what URL info is sent when users click links to other sites.',why:'Without it, sensitive URL params (reset tokens, user IDs) can leak to third-party analytics.',fix:'Add: Referrer-Policy: strict-origin-when-cross-origin',links:[]},
+    {key:'permissions-policy',id:'perm',title:'Permissions-Policy header missing',pass:'Permissions-Policy set',sev:'low',cat:'Security',what:'Controls which browser APIs (camera, microphone, geolocation) are allowed.',why:'Limits damage if third-party scripts on your page try to access device sensors.',fix:'Add: Permissions-Policy: geolocation=(), microphone=(), camera=()',links:[]},
+  ];
+
+  for(const h of headers){
+    const found=hStr.includes(h.key)||(h.key==='x-frame-options'&&hStr.includes('frame-ancestors'));
+    if(httpsReachable){
+      res.push({id:'hdr_'+h.id,title:found?h.pass:h.title,severity:found?'pass':h.sev,category:h.cat,what:h.what,why:h.why,fix:h.fix,links:h.links||[]});
+    }
+  }
+
+  return res;
+}
+
+async function checkSEO(domain){
+  const res=[];
+  const data=await proxy('https://'+domain);
+  const seoReachable=data.ok||(data.text&&data.text.length>0);
+  if(!seoReachable){
+    res.push({id:'seo_reach',title:'Site unreachable — SEO scan skipped',severity:'high',category:'SEO',what:'Could not load your site.',why:'If search engines can\'t reach you, you won\'t be indexed.',fix:'Check hosting, DNS, and firewall settings.',links:[]});
+    return res;
+  }
+  const html=data.text||'';
+
+  const titleM=html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const title=titleM?titleM[1].trim():null;
+  if(!title)res.push({id:'seo_title',title:'Missing <title> tag',severity:'high',category:'SEO',what:'No title tag found on your homepage.',why:'The title tag is the #1 on-page SEO signal — it appears in search results.',fix:'Add: <title>App Name – One-line value prop | Brand</title>\nKeep under 60 characters.',links:[]});
+  else if(title.length<10)res.push({id:'seo_title',title:'Page title too short',severity:'medium',category:'SEO',what:`Current: "${title}" (${title.length} chars)`,why:'Too short to include meaningful keywords.',fix:'Expand to 40–60 characters with primary keyword near start.',links:[]});
+  else if(title.length>65)res.push({id:'seo_title',title:'Page title too long (truncated in results)',severity:'low',category:'SEO',what:`"${title.substring(0,60)}..." (${title.length} chars)`,why:'Google cuts titles at ~60 chars — the rest is invisible in search results.',fix:'Trim to under 60 characters.',links:[]});
+  else res.push({id:'seo_title',title:'Page title looks good',severity:'pass',category:'SEO',what:`"${title}" (${title.length} chars)`,why:'Well-sized title.',fix:'Review annually.',links:[]});
+
+  const descM=html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)||html.match(/<meta[^>]+content=["']([^"']*)[^>]+name=["']description["']/i);
+  const desc=descM?descM[1].trim():null;
+  if(!desc)res.push({id:'seo_desc',title:'Meta description missing',severity:'medium',category:'SEO',what:'No meta description tag.',why:'Descriptions are your search result ad copy — they heavily influence click-through rates.',fix:'Add: <meta name="description" content="120–160 char description">\nFocus on the value your app provides.',links:[]});
+  else if(desc.length>165)res.push({id:'seo_desc',title:'Meta description too long',severity:'low',category:'SEO',what:`${desc.length} chars — gets truncated at ~160.`,why:'Google trims long descriptions and may write its own.',fix:'Shorten to 120–160 characters.',links:[]});
+  else res.push({id:'seo_desc',title:'Meta description present',severity:'pass',category:'SEO',what:`"${desc.substring(0,100)}${desc.length>100?'...':''}"`,why:'Description is set.',fix:'Ensure it includes your primary keyword naturally.',links:[]});
+
+  const ogFields=['og:title','og:description','og:image','og:url'];
+  const missingOg=ogFields.filter(f=>!html.match(new RegExp(`property=["']${f}["']`,'i')));
+  if(missingOg.length>0)res.push({id:'seo_og',title:`Open Graph incomplete (${missingOg.join(', ')})`,severity:'medium',category:'SEO',what:'Open Graph tags control link previews on Twitter/X, LinkedIn, Slack, iMessage.',why:'Without them, link previews look broken or generic — kills click-through from social sharing.',fix:`Add to <head>:\n<meta property="og:title" content="...">\n<meta property="og:description" content="...">\n<meta property="og:image" content="https://you.com/og.jpg">\n<meta property="og:url" content="https://you.com">`,links:['https://www.opengraph.xyz']});
+  else res.push({id:'seo_og',title:'Open Graph tags complete',severity:'pass',category:'SEO',what:'og:title, og:description, og:image, og:url all found.',why:'Social link previews will render correctly.',fix:'Test at opengraph.xyz',links:['https://www.opengraph.xyz']});
+
+  const twCard=html.match(/name=["']twitter:card["']/i);
+  if(!twCard)res.push({id:'seo_tw',title:'Twitter/X card tags missing',severity:'low',category:'SEO',what:'No twitter:card meta tags found.',why:'Without these, shared links on X show only plain text, not a rich card with image.',fix:'Add: <meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="...">\n<meta name="twitter:description" content="...">',links:[]});
+  else res.push({id:'seo_tw',title:'Twitter/X card tags present',severity:'pass',category:'SEO',what:'twitter:card found.',why:'X will render rich link cards.',fix:'Test with Twitter card validator.',links:['https://cards-dev.twitter.com/validator']});
+
+  if(!html.match(/<link[^>]+rel=["']canonical["']/i))res.push({id:'seo_can',title:'Canonical URL tag missing',severity:'low',category:'SEO',what:'No canonical link tag found.',why:'Google may treat www vs non-www as duplicates, splitting ranking power.',fix:'Add: <link rel="canonical" href="https://websitesecurityscanner.netlify.app/">',links:[]});
+  else res.push({id:'seo_can',title:'Canonical URL set',severity:'pass',category:'SEO',what:'Canonical tag found.',why:'Prevents duplicate content issues.',fix:'Ensure it points to your preferred URL.',links:[]});
+
+  if(!html.match(/<html[^>]+lang=/i))res.push({id:'seo_lang',title:'HTML lang attribute missing',severity:'low',category:'SEO',what:'No lang attribute on <html> tag.',why:'Screen readers and search engines need this to understand page language. Also affects accessibility compliance.',fix:'Add: <html lang="en">',links:[]});
+  else res.push({id:'seo_lang',title:'HTML lang attribute set',severity:'pass',category:'SEO',what:'lang attribute found.',why:'Language is declared.',fix:'Ensure it matches your content language.',links:[]});
+
+  const hasSchema=html.match(/application\/ld\+json/i)||html.match(/schema\.org/i);
+  if(!hasSchema)res.push({id:'aeo_schema',title:'Structured data (JSON-LD) missing',severity:'medium',category:'AEO',what:'No schema.org / JSON-LD markup detected.',why:'AI search tools (Perplexity, Google AI Overviews, ChatGPT Search) use structured data to surface your content as answers. Also enables rich search results.',fix:'Add to <head>:\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "WebApplication",\n  "name": "Your App",\n  "description": "What it does",\n  "url": "https://websitesecurityscanner.netlify.app/"\n}\n<\/script>',links:['https://validator.schema.org']});
+  else res.push({id:'aeo_schema',title:'Structured data detected',severity:'pass',category:'AEO',what:'schema.org or JSON-LD found.',why:'Eligible for rich search results and AI citations.',fix:'Validate at schema.org/validator',links:['https://validator.schema.org']});
+
+  if(!html.match(/FAQPage|faqPage/))res.push({id:'aeo_faq',title:'FAQ schema not implemented',severity:'low',category:'AEO',what:'No FAQPage structured data.',why:'FAQ schema gives your Q&As prime placement in Google AI Overviews and voice search — high AEO value.',fix:'Add FAQPage JSON-LD with your app\'s most common questions. See schema.org/FAQPage.',links:['https://schema.org/FAQPage']});
+
+  if(!html.match(/name=["']viewport["']/i))res.push({id:'perf_vp',title:'Viewport meta tag missing',severity:'high',category:'Performance',what:'No viewport meta tag.',why:'Without this, mobile devices render your site at desktop scale — tiny and unusable. Google mobile-first indexing penalizes this.',fix:'Add: <meta name="viewport" content="width=device-width, initial-scale=1">',links:[]});
+  else res.push({id:'perf_vp',title:'Mobile viewport configured',severity:'pass',category:'Performance',what:'viewport meta tag found.',why:'Enables responsive layout on mobile.',fix:'Test on real device or Chrome DevTools mobile emulation.',links:[]});
+
+  const imgCount=(html.match(/<img /gi)||[]).length;
+  const altMissing=(html.match(/<img(?![^>]*alt=)[^>]*>/gi)||[]).length;
+  if(altMissing>0)res.push({id:'a11y_alt',title:`${altMissing} image${altMissing>1?'s':''} missing alt text`,severity:altMissing>3?'high':'medium',category:'Accessibility',what:`Found ${imgCount} image(s), ${altMissing} without alt attributes.`,why:'Alt text is required for screen readers (WCAG 1.1.1). Missing alt text is one of the most common ADA lawsuit triggers.',fix:'Add descriptive alt to all meaningful images: <img src="logo.png" alt="Vibe Checker logo">\nFor decorative images: alt=""',links:['https://webaim.org/techniques/alttext/']});
+  else if(imgCount>0)res.push({id:'a11y_alt',title:'All images have alt text',severity:'pass',category:'Accessibility',what:`${imgCount} images found — all have alt attributes.`,why:'Screen readers can describe all images.',fix:'Ensure alt text is descriptive, not just filenames.',links:[]});
+
+  const hasH1=html.match(/<h1[^>]*>/i);
+  const h1Count=(html.match(/<h1[^>]*>/gi)||[]).length;
+  if(!hasH1)res.push({id:'a11y_h1',title:'No H1 heading found',severity:'medium',category:'Accessibility',what:'No <h1> tag on the page.',why:'H1 is the main document heading — screen readers use it to announce the page. Also affects SEO.',fix:'Add a single <h1> with your primary page heading/title.',links:[]});
+  else if(h1Count>1)res.push({id:'a11y_h1',title:'Multiple H1 headings found',severity:'low',category:'Accessibility',what:`${h1Count} H1 tags found.`,why:'Multiple H1s confuse screen reader users and dilute SEO keyword signals.',fix:'Use exactly one <h1> per page. Use h2–h6 for subsections.',links:[]});
+  else res.push({id:'a11y_h1',title:'Single H1 heading present',severity:'pass',category:'Accessibility',what:'One H1 found — correct heading structure.',why:'Good for accessibility and SEO.',fix:'Ensure it contains your primary keyword.',links:[]});
+
+  const hasPrivacy=html.match(/privacy[\s-]?policy|privacy[\s-]?notice/i)||html.toLowerCase().includes('privacy');
+  if(!hasPrivacy)res.push({id:'priv_pp',title:'Privacy policy link not detected',severity:'medium',category:'Privacy',what:'No privacy policy link found on the homepage.',why:'A privacy policy is legally required if you collect any user data (emails, analytics, cookies). GDPR, CCPA, and most platform ToS require it.',fix:'Create a /privacy-policy page and link to it in your footer. Use a generator like Termly or Iubenda to start.',links:['https://termly.io','https://www.iubenda.com']});
+  else res.push({id:'priv_pp',title:'Privacy policy link detected',severity:'pass',category:'Privacy',what:'Privacy-related link found on page.',why:'Required for GDPR/CCPA compliance.',fix:'Ensure it accurately describes what data you collect and why.',links:[]});
+
+  const hasTerms=html.match(/terms\s*(of\s*(service|use))?|tos\b/i);
+  if(!hasTerms)res.push({id:'priv_tos',title:'Terms of service not detected',severity:'low',category:'Privacy',what:'No terms of service link found.',why:'ToS protects you legally and sets expectations for users. Required by most payment processors and app stores.',fix:'Create a /terms page. Legal templates at Termly or consult a lawyer for SaaS specifics.',links:['https://termly.io']});
+
+  const hasCookieBanner=html.match(/cookie(s)?\s*(consent|banner|notice|policy)|gdpr|ccpa/i);
+  if(!hasCookieBanner)res.push({id:'priv_cookie',title:'Cookie consent banner not detected',severity:'medium',category:'Privacy',what:'No cookie consent mechanism detected on the page.',why:'GDPR requires explicit consent before setting non-essential cookies (analytics, ads). Fines can reach €20M or 4% of global revenue.',fix:'Add a consent banner using a free tool like CookieYes or Osano. Ensure analytics only load after consent.',links:['https://www.cookieyes.com','https://www.osano.com']});
+  else res.push({id:'priv_cookie',title:'Cookie consent appears configured',severity:'pass',category:'Privacy',what:'Cookie/GDPR consent mechanism detected.',why:'Required for GDPR compliance.',fix:'Ensure analytics and tracking scripts only fire after consent.',links:[]});
+
+  const techSigs={
+    'WordPress':/<meta[^>]+name=["']generator["'][^>]+WordPress/i,
+    'Next.js':/\/__next|next\/static/i,
+    'Nuxt.js':/nuxt|_nuxt/i,
+    'React':/react\.development|react\.production|__reactFiber|__REACT/i,
+    'Vue.js':/vue\.|__vue_/i,
+    'Angular':/ng-version|angular\//i,
+    'Shopify':/Shopify|shopify\.com\/s\/files/i,
+    'Webflow':/webflow\.com|Webflow/i,
+    'Framer':/framer\.com|framerusercontent/i,
+    'jQuery':/<script[^>]+jquery/i,
+  };
+  const detected=Object.keys(techSigs).filter(t=>techSigs[t].test(html));
+  if(detected.length>0)res.push({id:'tech_stack',title:`Tech detected: ${detected.join(', ')}`,severity:'info',category:'Tech Stack',what:`Identified: ${detected.join(', ')}`,why:'Technology fingerprinting lets attackers target known CVEs for your specific stack.',fix:'Keep all frameworks/CMS/plugins updated. Check for CVEs at nvd.nist.gov. Consider adding a generic error page to hide stack traces.',links:['https://nvd.nist.gov']});
+
+  return res;
+}
+
+async function checkInfra(domain){
+  const res=[];
+
+  const robRes=await rawProxy('https://'+domain+'/robots.txt');
+  if(robRes.ok&&robRes.text&&robRes.text.includes('User-agent')){
+    const hasDisallowAll=/Disallow:\s*\//m.test(robRes.text)&&!robRes.text.match(/Allow:\s*\/[^\s]/);
+    if(hasDisallowAll)res.push({id:'inf_rob_block',title:'robots.txt blocks all crawlers',severity:'high',category:'SEO',what:'Disallow: / is set without specific Allow rules — this blocks all search engine indexing.',why:'Your site will disappear from Google if crawlers are blocked.',fix:'Remove "Disallow: /" or add specific Allow rules for pages you want indexed.\nExample: Disallow: /admin/ (block only admin area)',links:[]});
+    else res.push({id:'inf_rob_ok',title:'robots.txt valid',severity:'pass',category:'SEO',what:'robots.txt found with valid User-agent rules.',why:'Search engines can discover and respect your crawl preferences.',fix:'Ensure you\'re not accidentally blocking important pages.',links:[]});
+  }else{
+    res.push({id:'inf_rob_miss',title:'robots.txt missing',severity:'medium',category:'SEO',what:'No valid robots.txt at /robots.txt',why:'Without it, crawlers may index admin pages, staging, or duplicate content.',fix:'Create /robots.txt:\nUser-agent: *\nAllow: /\nSitemap: https://websitesecurityscanner.netlify.app/sitemap.xml',links:[]});
+  }
+
+  const smRes=await rawProxy('https://'+domain+'/sitemap.xml');
+  if(smRes.ok&&smRes.text&&smRes.text.includes('<url')){
+    const urlCount=(smRes.text.match(/<url>/gi)||[]).length;
+    res.push({id:'inf_sm_ok',title:`Sitemap found (${urlCount} URLs)`,severity:'pass',category:'SEO',what:`sitemap.xml contains ${urlCount} URL entries.`,why:'Helps Google discover and index all your pages.',fix:'Submit to Google Search Console.',links:['https://search.google.com/search-console']});
+  }else{
+    res.push({id:'inf_sm_miss',title:'sitemap.xml missing',severity:'medium',category:'SEO',what:'No sitemap found at /sitemap.xml',why:'Without a sitemap, Google may miss pages — critical for SPAs and new sites.',fix:'Use next-sitemap, gatsby-plugin-sitemap, or xml-sitemap generators. Add URL to robots.txt.',links:[]});
+  }
+
+  const wellKnown=await rawProxy('https://'+domain+'/.well-known/security.txt');
+  if(wellKnown.ok&&wellKnown.text&&wellKnown.text.includes('Contact')){
+    res.push({id:'inf_sectxt',title:'security.txt present',severity:'pass',category:'Security',what:'security.txt found at /.well-known/security.txt',why:'Researchers can report vulnerabilities responsibly.',fix:'Keep the contact and expiry fields up to date.',links:[]});
+  }else{
+    res.push({id:'inf_sectxt',title:'security.txt missing',severity:'info',category:'Security',what:'No security.txt at /.well-known/security.txt',why:'security.txt lets security researchers know how to responsibly disclose vulnerabilities they find.',fix:'Create /.well-known/security.txt:\nContact: mailto:i3arty.dev@gmail.com\nExpires: 2026-12-31T23:59:00.000Z',links:['https://securitytxt.org']});
+  }
+
+  const sw=await rawProxy('https://'+domain+'/service-worker.js');
+  const swAlt=await rawProxy('https://'+domain+'/sw.js');
+  if(sw.ok||swAlt.ok)res.push({id:'inf_sw',title:'Service worker detected',severity:'info',category:'Performance',what:'A service worker was found — your app supports offline caching.',why:'Service workers enable offline functionality, faster repeat visits, and PWA capabilities.',fix:'Ensure your service worker cache strategy is up to date and stale content is invalidated properly.',links:[]});
+
+  const manifest=await rawProxy('https://'+domain+'/manifest.json');
+  const manifestAlt=await rawProxy('https://'+domain+'/site.webmanifest');
+  if(manifest.ok||manifestAlt.ok)res.push({id:'inf_pwa',title:'Web app manifest found (PWA-ready)',severity:'pass',category:'Performance',what:'manifest.json or site.webmanifest detected.',why:'Enables "Add to Home Screen", app-like experience on mobile.',fix:'Ensure manifest includes name, icons, start_url, and display fields.',links:[]});
+  else res.push({id:'inf_pwa',title:'No web app manifest (PWA)',severity:'info',category:'Performance',what:'No manifest.json found.',why:'Adding a manifest enables PWA features — installable, offline-capable, faster.',fix:'Add a manifest.json and link it: <link rel="manifest" href="/manifest.json">',links:['https://web.dev/add-manifest/']});
+
+  res.push({id:'inf_spf',title:'Email auth: SPF / DKIM / DMARC',severity:'medium',category:'Security',what:'Cannot check DNS records from the browser. Manual check required.',why:'Without SPF, DKIM, and DMARC, attackers can send phishing emails that appear to come from your domain.',fix:'Check at mxtoolbox.com. You need all three:\n• SPF: TXT record "v=spf1 include:provider.com ~all"\n• DKIM: set via your email provider\n• DMARC: TXT "_dmarc" "v=DMARC1; p=reject; rua=mailto:you@domain.com"',links:['https://mxtoolbox.com/SuperTool.aspx']});
+
+  res.push({id:'inf_domain_lock',title:'Domain lock & hijacking protection',severity:'info',category:'Infrastructure',what:'Browser cannot verify registrar lock status. Check at your registrar.',why:'An unlocked domain can be transferred or deleted by anyone who compromises your registrar account.',fix:'Log into your registrar and enable:\n• Transfer lock (clientTransferProhibited)\n• Delete lock (clientDeleteProhibited)\n• Enable 2FA on your registrar account with an authenticator app (not SMS)',links:[]});
+
+  res.push({id:'inf_2fa',title:'Hosting & registrar 2FA (manual check)',severity:'info',category:'Infrastructure',what:'2FA cannot be verified remotely.',why:'If your hosting or registrar account is taken over, an attacker can redirect your entire domain or take your site offline.',fix:'Enable 2FA on: domain registrar, hosting panel, DNS provider, email provider. Use Authy or Google Authenticator — not SMS.',links:[]});
+
+  res.push({id:'inf_backups',title:'Backup strategy (manual check)',severity:'info',category:'Infrastructure',what:'Cannot verify remotely.',why:'Most vibe-coded apps don\'t set up backups until after a disaster. If your database or files are lost, recovery can be impossible.',fix:'Set up automated daily backups:\n• Database: pg_dump cron job or managed DB backup\n• Files: S3 versioning, Backblaze B2\n• Code: GitHub (already your source of truth)',links:[]});
+
+  res.push({id:'inf_cwv',title:'Core Web Vitals (LCP, CLS, INP)',severity:'info',category:'Performance',what:'Real Core Web Vitals require browser/lab testing — cannot run from here.',why:'LCP, CLS, and INP are direct Google ranking factors. Sites with good CWV have 24% lower abandonment rates.',fix:'Test at pagespeed.web.dev — target:\n• LCP < 2.5s (page load speed)\n• CLS < 0.1 (layout stability)\n• INP < 200ms (interactivity)\nFocus on LCP first — it\'s the biggest mover.',links:['https://pagespeed.web.dev/','https://web.dev/vitals/']});
+
+  return res;
+}
+
+async function runAll(domain,onProgress){
+  const clean=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').trim();
+  let all=[];
+  onProgress(.1,'ssl');
+  const a=await checkSSLHeaders(clean);
+  all=[...all,...a];
+  onProgress(.45,'seo');
+  const b=await checkSEO(clean);
+  all=[...all,...b];
+  onProgress(.8,'infra');
+  const c=await checkInfra(clean);
+  all=[...all,...c];
+  onProgress(1,'done');
+  return all;
+}
+
+async function getAI(issue,domain){
+  // AI insights require a backend proxy to keep your API key secure.
+  // See: https://docs.anthropic.com/en/api/getting-started
+  return 'AI insights are available when this tool is deployed with a secure backend proxy.';
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',max_tokens:1000,
+      messages:[{role:'user',content:`Web scanner found this for "${domain}":\nTitle: ${issue.title}\nCategory: ${issue.category} | Severity: ${issue.severity}\nIssue: ${issue.what}\nRisk: ${issue.why}\n\nGive ONE sharp, specific, actionable tip in 2-3 sentences. Be concrete — mention tools, commands, or config snippets. No fluff.`}]
+    })
+  });
+  const d=await r.json();
+  return d.content?.[0]?.text||'';
+}
+
+const LOAD_STEPS=[
+  {id:'ssl',label:'SSL & security headers'},
+  {id:'seo',label:'SEO, meta tags & AEO'},
+  {id:'infra',label:'Infrastructure & privacy'},
+  {id:'done',label:'Finalizing results'},
+];
+
+function IssueCard({issue,domain}){
+  const [open,setOpen]=useState(false);
+  const [ai,setAi]=useState('');
+  const [loadingAI,setLoadingAI]=useState(false);
+
+  const toggle=async()=>{
+    setOpen(o=>!o);
+    if(!open&&!ai&&issue.severity!=='pass'&&issue.severity!=='info'){
+      setLoadingAI(true);
+      try{const t=await getAI(issue,domain);setAi(t);}catch{}
+      setLoadingAI(false);
+    }
+  };
+
+  return React.createElement('div',{className:`issue-card${open?' open':''}`,onClick:toggle},
+    React.createElement('div',{className:'ih'},
+      React.createElement('div',{className:`sdot ${issue.severity}`}),
+      React.createElement('span',{className:'ititle'},issue.title),
+      React.createElement('span',{className:'icat'},issue.category),
+      React.createElement('span',{className:`sbadge ${issue.severity}`},issue.severity),
+      React.createElement('i',{className:'ti ti-chevron-down chev'})
+    ),
+    open&&React.createElement('div',{className:'ibody'},
+      React.createElement('div',{className:'isec'},
+        React.createElement('div',{className:'isec-lbl'},'What\'s happening'),
+        React.createElement('div',{className:'isec-txt'},issue.what)
+      ),
+      React.createElement('div',{className:'isec'},
+        React.createElement('div',{className:'isec-lbl'},'Why it matters'),
+        React.createElement('div',{className:'isec-txt'},issue.why)
+      ),
+      React.createElement('div',{className:'isec'},
+        React.createElement('div',{className:'isec-lbl'},'How to fix'),
+        React.createElement('div',{className:'isec-txt mono'},issue.fix)
+      ),
+      issue.links&&issue.links.length>0&&React.createElement('div',{className:'links-row'},
+        issue.links.map(l=>React.createElement('a',{key:l,href:l,target:'_blank',className:'ext-link'},
+          React.createElement('i',{className:'ti ti-external-link','aria-hidden':'true'}),
+          l.replace(/^https?:\/\//,'').split('/')[0]
+        ))
+      ),
+      issue.severity!=='pass'&&issue.severity!=='info'&&React.createElement('div',{className:'ai-box'},
+        React.createElement('div',{className:'ai-lbl'},
+          React.createElement('i',{className:'ti ti-sparkles','aria-hidden':'true'}),
+          'AI insight'
+        ),
+        loadingAI
+          ?React.createElement('div',{className:'ai-txt',style:{opacity:.5}},'Analyzing...')
+          :React.createElement('div',{className:'ai-txt'},ai||'Click to load AI insight.')
+      )
+    )
+  );
+}
+
+function App(){
+  const [domain,setDomain]=useState('');
+  const [scanning,setScanning]=useState(false);
+  const [prog,setProg]=useState(0);
+  const [curStep,setCurStep]=useState('');
+  const [issues,setIssues]=useState(null);
+  const [filter,setFilter]=useState('all');
+  const [theme,setTheme]=useState('light');
+  const scanned=useRef('');
+
+  useEffect(()=>{document.documentElement.setAttribute('data-theme',theme)},[theme]);
+
+  const scan=async()=>{
+    if(!domain.trim())return;
+    setScanning(true);setIssues(null);setProg(0);setFilter('all');
+    scanned.current=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').trim();
+    try{
+        const res=await runAll(domain,(p,s)=>{setProg(p);setCurStep(s);});
+        setIssues(res);
+      }catch(e){
+        setIssues([{id:'scan_err',title:'Scan failed — network or proxy error',severity:'high',category:'Infrastructure',what:'The scan could not complete. The proxy service may be rate-limited or down.',why:'allorigins.win is a free public proxy with rate limits.',fix:'Wait 30 seconds and try again. For production use, set up your own CORS proxy.',links:[]}]);
+      }finally{
+        setScanning(false);
+      }
+  };
+
+  const cats=issues?[...new Set(issues.map(i=>i.category))]:[];
+  const counts=issues?{
+    critical:issues.filter(i=>i.severity==='critical'||i.severity==='high').length,
+    medium:issues.filter(i=>i.severity==='medium').length,
+    low:issues.filter(i=>i.severity==='low').length,
+    info:issues.filter(i=>i.severity==='info').length,
+    pass:issues.filter(i=>i.severity==='pass').length,
+  }:null;
+
+  const score=issues?Math.max(0,Math.round(100-(counts.critical*14)-(counts.medium*6)-(counts.low*2))):null;
+
+  const filtered=issues?[...issues].filter(i=>{
+    if(filter==='all')return true;
+    if(filter==='issues')return i.severity!=='pass'&&i.severity!=='info';
+    return i.category===filter;
+  }).sort((a,b)=>(SEV_ORDER[a.severity]||9)-(SEV_ORDER[b.severity]||9)):[];
+
+  const circ=2*Math.PI*26;
+
+  return React.createElement('div',{className:'app'},
+    React.createElement('div',{className:'header'},
+      React.createElement('div',{className:'logo'},
+        React.createElement('div',{className:'logo-icon'},React.createElement('i',{className:'ti ti-shield-check'})),
+        React.createElement('div',null,
+          React.createElement('div',{className:'logo-name'},'Vibe Checker'),
+          React.createElement('div',{className:'logo-sub'},'Security · SEO · AEO · Privacy · Accessibility')
+        )
+      ),
+      React.createElement('div',{className:'hdr-right'},
+        React.createElement('button',{className:'icon-btn',onClick:()=>setTheme(t=>t==='light'?'dark':'light')},
+          React.createElement('i',{className:theme==='light'?'ti ti-moon':'ti ti-sun'}),
+          theme==='light'?'Dark':'Light'
+        )
+      )
+    ),
+    React.createElement('div',{className:'hero'},
+      React.createElement('h1',null,'Full-stack web app audit'),
+      React.createElement('p',null,'50+ checks across security, SEO, AEO, performance, privacy & accessibility. Click any issue for AI-powered fix guidance.')
+    ),
+    React.createElement('div',{className:'scan-box'},
+      React.createElement('div',{className:'scan-row'},
+        React.createElement('label',{htmlFor:'domain-input',style:{position:'absolute',width:'1px',height:'1px',overflow:'hidden',clip:'rect(0,0,0,0)'},'aria-hidden':'false'},'Website domain to audit'),
+        React.createElement('input',{id:'domain-input',className:'domain-input',type:'text',placeholder:'websitesecurityscanner.netlify.app','aria-label':'Website domain to audit',value:domain,onChange:e=>setDomain(e.target.value),onKeyDown:e=>e.key==='Enter'&&scan(),disabled:scanning}),
+        React.createElement('button',{className:'scan-btn',onClick:scan,disabled:scanning||!domain.trim()},
+          scanning?React.createElement('span',{className:'spinner'}):React.createElement('i',{className:'ti ti-radar','aria-hidden':'true'}),
+          scanning?'Scanning...':'Scan now'
+        )
+      ),
+      React.createElement('div',{className:'chips'},
+        ['SSL','Security headers','SEO tags','Open Graph','Schema.org','Alt text','robots.txt','Sitemap','Cookie consent','Privacy policy','TTFB','PWA','security.txt','Tech stack','Email security'].map(c=>React.createElement('span',{className:'chip',key:c},c))
+      )
+    ),
+    scanning&&React.createElement('div',{className:'prog-wrap'},
+      React.createElement('div',{className:'prog-bar'},React.createElement('div',{className:'prog-fill',style:{width:`${Math.round(prog*100)}%`}})),
+      React.createElement('div',{className:'lc-grid'},
+        LOAD_STEPS.map((s,i)=>{
+          const order=['ssl','seo','infra','done'];
+          const ci=order.indexOf(curStep);
+          const mi=i;
+          const st=ci>mi?'done':ci===mi?'running':'pending';
+          return React.createElement('div',{className:`lc-item ${st}`,key:s.id},
+            React.createElement('i',{className:st==='done'?'ti ti-circle-check':st==='running'?'ti ti-loader':'ti ti-circle','aria-hidden':'true'}),
+            s.label
+          );
+        })
+      )
+    ),
+    issues&&!scanning&&React.createElement('div',null,
+      React.createElement('div',{className:'score-row'},
+        React.createElement('div',{className:'ring-wrap'},
+          React.createElement('svg',{width:64,height:64,viewBox:'0 0 64 64'},
+            React.createElement('circle',{cx:32,cy:32,r:26,fill:'none',stroke:'var(--border2)',strokeWidth:5}),
+            React.createElement('circle',{cx:32,cy:32,r:26,fill:'none',stroke:scoreColor(score),strokeWidth:5,strokeDasharray:circ,strokeDashoffset:circ*(1-score/100),strokeLinecap:'round'})
+          ),
+          React.createElement('div',{className:'ring-score',style:{color:scoreColor(score)}},score)
+        ),
+        React.createElement('div',{className:'score-detail'},
+          React.createElement('h3',null,scoreLabel(score)),
+          React.createElement('p',null,`${scanned.current} · ${issues.length} checks run`),
+          React.createElement('div',{className:'score-cats'},
+            cats.map(c=>{
+              const issues_in_cat=issues.filter(i=>i.category===c&&i.severity!=='pass'&&i.severity!=='info').length;
+              return React.createElement('span',{key:c,className:'score-cat'},issues_in_cat>0?`${c} (${issues_in_cat})`:c+' ✓');
+            })
+          )
+        )
+      ),
+      React.createElement('div',{className:'summary-row'},
+        [
+          {n:counts.critical,l:'Critical/High',c:'var(--red)'},
+          {n:counts.medium,l:'Medium',c:'var(--amber)'},
+          {n:counts.low,l:'Low',c:'var(--blue)'},
+          {n:counts.info,l:'Info',c:'var(--text3)'},
+          {n:counts.pass,l:'Passing',c:'var(--green)'},
+        ].map(({n,l,c})=>React.createElement('div',{className:'sum-card',key:l},
+          React.createElement('div',{className:'sum-num',style:{color:c}},n),
+          React.createElement('div',{className:'sum-lbl'},l)
+        ))
+      ),
+      React.createElement('div',{className:'filters'},
+        React.createElement('button',{className:`f-btn${filter==='all'?' active':''}`,onClick:()=>setFilter('all')},`All (${issues.length})`),
+        React.createElement('button',{className:`f-btn${filter==='issues'?' active':''}`,onClick:()=>setFilter('issues')},`Issues (${counts.critical+counts.medium+counts.low})`),
+        cats.map(c=>React.createElement('button',{key:c,className:`f-btn${filter===c?' active':''}`,onClick:()=>setFilter(c)},c))
+      ),
+      filtered.filter(i=>i.severity!=='pass').length>0&&React.createElement('div',null,
+        ['critical','high','medium','low','info'].map(sev=>{
+          const items=filtered.filter(i=>i.severity===sev);
+          if(!items.length)return null;
+          const labels={critical:'Critical',high:'High severity',medium:'Medium severity',low:'Low severity',info:'Informational / Manual checks'};
+          const icons={critical:'ti-alert-octagon',high:'ti-alert-triangle',medium:'ti-alert-circle',low:'ti-info-circle',info:'ti-list-check'};
+          return React.createElement('div',{key:sev},
+            React.createElement('div',{className:'sec-lbl'},
+              React.createElement('i',{className:`ti ${icons[sev]}`,'aria-hidden':'true'}),
+              labels[sev]
+            ),
+            items.map(i=>React.createElement(IssueCard,{key:i.id,issue:i,domain:scanned.current}))
+          );
+        })
+      ),
+      filtered.filter(i=>i.severity==='pass').length>0&&React.createElement('div',{className:'pass-sec'},
+        React.createElement('div',{className:'sec-lbl'},
+          React.createElement('i',{className:'ti ti-circle-check','aria-hidden':'true'}),
+          'Passing'
+        ),
+        filtered.filter(i=>i.severity==='pass').map(i=>React.createElement(IssueCard,{key:i.id,issue:i,domain:scanned.current}))
+      )
+    ),
+    !issues&&!scanning&&React.createElement('div',{className:'empty'},
+      React.createElement('i',{className:'ti ti-radar'}),
+      React.createElement('p',null,'Enter any domain above to run a full audit')
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
